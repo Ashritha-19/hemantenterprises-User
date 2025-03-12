@@ -6,14 +6,14 @@ import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class EditProfile extends StatefulWidget {
+  const EditProfile({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<EditProfile> createState() => _EditProfileState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _EditProfileState extends State<EditProfile> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullName = TextEditingController();
   final TextEditingController _email = TextEditingController();
@@ -64,12 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Profile',
+                        'Edit Profile',
                         style: GoogleFonts.instrumentSans(
                             color: Colorconstants.darkBlack,
                             fontSize: 14,
@@ -104,6 +104,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 controller: _fullName,
                                 decoration: InputDecoration(
                                   hintText: "Full Name",
+                                  fillColor: Colorconstants.white,
+                                  
                                   hintStyle: GoogleFonts.instrumentSans(
                                     color: Colorconstants.brandLogoCircle,
                                     fontSize: 12,

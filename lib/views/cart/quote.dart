@@ -1,5 +1,7 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, avoid_unnecessary_containers, avoid_single_cascade_in_expression_statements
 
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -213,8 +215,134 @@ class _QuoteScreenState extends State<QuoteScreen> {
                                   );
                                 },
                               ),
+                              SizedBox(height: 2.h),
+                              DottedLine(
+                                dashColor: Colorconstants.brandLogoCircle,
+                                lineThickness: 1,
+                              ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 10),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Sub Total",
+                                      style: GoogleFonts.instrumentSans(
+                                          fontWeight: FontWeight.w800,
+                                          color: Colorconstants.darkBlack,
+                                          fontSize: 12),
+                                    ),
+                                    Text(
+                                      "₹ ${getTotalPrice()}",
+                                      style: GoogleFonts.instrumentSans(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colorconstants.darkBlack,
+                                          fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 1.h),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 10),
+                                    child: Text(
+                                      "Promo Code",
+                                      style: GoogleFonts.instrumentSans(
+                                          fontWeight: FontWeight.w800,
+                                          color: Colorconstants.darkBlack,
+                                          fontSize: 12),
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color:
+                                              Colorconstants.brandLogoCircle),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextField(
+                                            decoration: InputDecoration(
+                                              hintText: "Enter promo code here",
+                                              hintStyle:
+                                                  GoogleFonts.instrumentSans(
+                                                color: Colorconstants
+                                                    .brandLogoCircle,
+                                                fontSize:
+                                                    12, // Slightly reduced font size
+                                              ),
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.symmetric(
+                                                  vertical: 8,
+                                                  horizontal:
+                                                      8), // Reduced padding inside TextField
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            AwesomeDialog(
+                                              context: context,
+                                              dialogType: DialogType
+                                                  .success, // Animated success icon
+                                              animType: AnimType
+                                                  .scale, // Pop-up animation effect
+                                              title: "🎉 Woohoo!",
+                                              titleTextStyle:
+                                                  GoogleFonts.instrumentSans(
+                                                      color: Colors.green,
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                              desc:
+                                                  "Enjoy the discount! 🥳",
+                                              descTextStyle:
+                                                  GoogleFonts.instrumentSans(
+                                                      color: Colorconstants
+                                                          .darkBlack,
+                                                      fontSize: 14),
+                                              btnOkText: "OK",
+                                              btnOkColor:
+                                                  Colorconstants.primaryColor,
+                                              btnOkOnPress:
+                                                  () {}, // Closes the dialog automatically
+                                            )..show();
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              "Apply",
+                                              style: GoogleFonts.instrumentSans(
+                                                color:
+                                                    Colorconstants.primaryColor,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 2.h),
+                              DottedLine(
+                                dashColor: Colorconstants.brandLogoCircle,
+                                lineThickness: 1,
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 10),
                                 child: Row(
                                   mainAxisAlignment:
@@ -879,6 +1007,13 @@ class _QuoteScreenState extends State<QuoteScreen> {
                                   // Custom Elevated Button
                                   CustomElevatedButton(
                                     text: "Submit",
+                                    textStyle: GoogleFonts.instrumentSans(
+                                      color: Colorconstants.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 30),
                                     onPressed: () {
                                       if (_formKey.currentState!.validate()) {
                                         Get.offNamed(AppRoutes.thankyou);
@@ -900,7 +1035,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                       ],
                     ),
                   ),

@@ -7,14 +7,14 @@ import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 
-class CategoryScreen extends StatefulWidget {
-  const CategoryScreen({super.key});
+class ModelScreen extends StatefulWidget {
+  const ModelScreen({super.key});
 
   @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
+  State<ModelScreen> createState() => _ModelScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class _ModelScreenState extends State<ModelScreen> {
   String? brandImagePath;
   String? productName; // Dynamic product name to display in place of "Brand".
 

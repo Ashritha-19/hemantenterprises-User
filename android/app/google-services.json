@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "935660613089",
-    "project_id": "hemantenterprises-547bf",
-    "storage_bucket": "hemantenterprises-547bf.firebasestorage.app"
+    "project_number": "420845502095",
+    "project_id": "hemantenterprises-70732",
+    "storage_bucket": "hemantenterprises-70732.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:935660613089:android:72c69c70421a744c9336a0",
+        "mobilesdk_app_id": "1:420845502095:android:bc95a034ca3192d3b2bafa",
         "android_client_info": {
           "package_name": "com.hemantenterprises.hemantenterprises"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD69NSpQwXfK6IXD8eSFoRwaOmmO6tMTu4"
+          "current_key": "AIzaSyBCAOnOatouCh-K-adFaF-SF40oQTAwFW0"
         }
       ],
       "services": {

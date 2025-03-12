@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
+import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutUsScreen extends StatefulWidget {
@@ -495,33 +496,35 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                                   ),
                                   SizedBox(height: 2.h),
 
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      if (_formKey.currentState!.validate()) {
-                                        _showToast(
-                                            "Form Submitted Successfully");
-                                      } else {
-                                        _showToast(
-                                            "Please enter valid details");
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colorconstants.primaryColor,
-                                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),                                        
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Submit',
-                                      style: GoogleFonts.instrumentSans(
+                                   CustomElevatedButton(
+                                    text: "Submit",
+                                    textStyle: GoogleFonts.instrumentSans(
                                         color: Colorconstants.white,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                       ),
-                                    ),
-                                  )
+                                    contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 30) ,
+                                    onPressed: () {
+                                      if (_formKey.currentState!.validate()) {
+                                        _showToast(
+                                            "Form Submitted Successfully");
+                                            _fullName.clear();
+                                            _phone.clear();
+                                            _message.clear();
+                                            _email.clear();
+                                      } else {
+                                        Fluttertoast.showToast(
+                                          msg:
+                                              "Please fill out the form correctly.",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 14.0,
+                                        );
+                                      }
+                                    },
+                                  ),
                                 ],
                               ),
                             ),

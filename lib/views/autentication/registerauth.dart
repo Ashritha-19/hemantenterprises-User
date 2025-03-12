@@ -1,6 +1,7 @@
-// ignore_for_file: deprecated_member_use, avoid_print
+// ignore_for_file: deprecated_member_use, avoid_print, use_build_context_synchronously
 
 import 'dart:async'; // For Timer
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
@@ -8,28 +9,34 @@ import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hemantenterprises/constants/apiservices.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
+import 'package:hemantenterprises/providers/register.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
-
-
-class VerificationCodeScreen extends StatefulWidget {
-  const VerificationCodeScreen({super.key});
+class RegisterUserVerification extends StatefulWidget {
+  const RegisterUserVerification({super.key});
 
   @override
-  State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
+  State<RegisterUserVerification> createState() =>
+      _RegisterUserVerificationState();
 }
 
-class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
+class _RegisterUserVerificationState extends State<RegisterUserVerification> {
   // Controllers for OTP TextFields
- 
+
   late Timer _timer;
   int _start = 30; // Timer starts at 30 seconds
   String _otpCode = "";
   bool _isResendEnabled = false;
   late String _verificationId;
+
+  String? userUid;
+  String? userIdentifier;
 
   @override
   void initState() {
@@ -61,51 +68,114 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     super.dispose();
   }
 
-
   void validateOtp() async {
-  if (_otpCode.length != 6) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please enter a valid 6-digit OTP')),
-    );
-  } else {
-    try {
-      // Create a PhoneAuthCredential using the verificationId and OTP entered by the user
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId,
-        smsCode: _otpCode,
+    if (_otpCode.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid 6-digit OTP')),
       );
-
-      // Sign in with the credential
-      await FirebaseAuth.instance.signInWithCredential(credential).then((value) async {
-        Fluttertoast.showToast(
-          msg: "OTP Verified Successfully!",
-          backgroundColor: Colors.green,
+    } else {
+      try {
+        // Create a PhoneAuthCredential using the verificationId and OTP entered by the user
+        PhoneAuthCredential credential = PhoneAuthProvider.credential(
+          verificationId: _verificationId,
+          smsCode: _otpCode,
         );
 
-        // Get the user UID and Identifier
-        String userUid = value.user?.uid ?? '';
-        String userIdentifier = value.user?.phoneNumber ?? '';
+        // Sign in with the credential
+        await FirebaseAuth.instance
+            .signInWithCredential(credential)
+            .then((value) async {
+          Fluttertoast.showToast(
+            msg: "OTP Verified Successfully!",
+            backgroundColor: Colors.green,
+          );
 
-        // Store the UID and Identifier in the provider
-      //  Provider.of<UserProvider>(context, listen: false).setUserDetails(userUid, userIdentifier);
+          // Get the user UID and Identifier
+          userUid = value.user?.uid ?? '';
+          userIdentifier = value.user?.phoneNumber ?? '';
 
-        // Print the UID and Identifier
-        print('User UID: $userUid');
-        print('User Identifier: $userIdentifier');
+          print(userUid);
+          print(userIdentifier);
 
-        // Navigate to the next screen after successful verification
-        Get.toNamed(AppRoutes.bottomNavigation);
-      });
-    } catch (e) {
-      Fluttertoast.showToast(
-        msg: "Invalid OTP or verification failed!",
-        backgroundColor: Colors.red,
-      );
+          _saveRegisterData(context);
+        });
+      } catch (e) {
+        Fluttertoast.showToast(
+          msg: "Invalid OTP or verification failed!",
+          backgroundColor: Colors.red,
+        );
+      }
     }
   }
-}
 
+  Future<void> _saveRegisterData(BuildContext context) async {
+    const String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.register}';
+    final String fullName =
+        Provider.of<CreateAccountProvider>(context, listen: false).fullName;
+    final String email =
+        Provider.of<CreateAccountProvider>(context, listen: false).email;
+  
+    print(fullName);
+    print(email);
+    print(userUid);
+    print(userIdentifier);
 
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+    };
+
+    Map<String, dynamic> requestBody = {
+      "fullName": fullName,
+      "email": email,
+      "phoneNumber": userIdentifier.toString(),
+      // "userId": userUid.toString(),
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      print("Response Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        print('$responseData >>>>>>>>>>>>>>');
+
+        if (responseData.containsKey('error') &&
+            responseData['error'] == "User already exists") {
+          Fluttertoast.showToast(
+            msg: "User already exists. Please login.",
+            backgroundColor: Colors.red,
+          );
+          Get.toNamed(AppRoutes.login);
+        } else {
+          Fluttertoast.showToast(
+            msg: "${responseData['message']}",
+            backgroundColor: Colors.green,
+          );
+
+          // // Store the access token in SharedPreferences
+          // SharedPreferences prefs = await SharedPreferences.getInstance();
+          // await prefs.setString(
+          //     'access_token', responseData['access_token'].toString());
+
+          // Navigate to Bottom Navigation Screen
+          Get.toNamed(AppRoutes.bottomNavigation);
+        }
+
+        print("Success: ${response.body}");
+      } else {
+        print("Failed: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +183,9 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
     return Scaffold(
       body: SingleChildScrollView(
-        child: Stack(          
+        child: Stack(
           children: [
-              Positioned.fill(
+            Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -194,7 +264,9 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                           'Resend Code',
                           style: GoogleFonts.instrumentSans(
                             fontSize: 16.sp,
-                            color: _isResendEnabled ? Colorconstants.white : Colorconstants.brandLogoCircle,
+                            color: _isResendEnabled
+                                ? Colorconstants.white
+                                : Colorconstants.brandLogoCircle,
                             decoration: TextDecoration.underline,
                             decorationColor: Colorconstants.bottomNav,
                           ),
@@ -202,21 +274,21 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                       ),
                       SizedBox(height: 20),
                       CustomElevatedButton(
-                              text: 'Create Account',
-                              textStyle: GoogleFonts.sen(
-                              fontSize: 30.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colorconstants.white,
-                                   ),
-                               onPressed: () {
-                                    validateOtp(); // Call OTP submission function                               
-                               },
-                              backgroundColor:Colorconstants.primaryColor,
-                              textColor: Colorconstants.white,
-                              borderRadius: 30.sp,
-                              contentPadding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 18.w),
-                              ),
-            
+                        text: 'Create Account',
+                        textStyle: GoogleFonts.sen(
+                          fontSize: 30.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colorconstants.white,
+                        ),
+                        onPressed: () {
+                          validateOtp(); // Call OTP submission function
+                        },
+                        backgroundColor: Colorconstants.primaryColor,
+                        textColor: Colorconstants.white,
+                        borderRadius: 30.sp,
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: 2.h, horizontal: 18.w),
+                      ),
                     ],
                   ),
                 ),

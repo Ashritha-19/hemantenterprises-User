@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use, avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
@@ -7,12 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fluttertoast/fluttertoast.dart'; // Import fluttertoast package
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/createaccountmodel.dart';
 import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
+import 'package:hemantenterprises/providers/register.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
+import 'package:provider/provider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -27,106 +29,126 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _privacyChecked = false;
-  String? _verificationId;
+  String? _verificationId ;
   bool _isLoading = false;
 
   void _handleTap() async {
-    // Defines an async function _handleTap.
     if (!_isLoading) {
-      // Checks if _isLoading is false, meaning the process is not already running.
       setState(() {
-        // Updates the UI to show a loading indicator.
-        _isLoading = true; // Sets _isLoading to true.
+        _isLoading = true;
       });
+      showLoadingDialog(context);
 
       if (_formKey.currentState!.validate()) {
-        // Validates the form using _formKey. Ensures all form inputs are correct.
-        // Trigger Firebase phone authentication
+        print('name:${_nameController.text}');
+        print('email:${_emailController.text}');
+      
+        // Check if values are not empty
+        if (_nameController.text.trim().isEmpty ||
+            _emailController.text.trim().isEmpty) {
+          Fluttertoast.showToast(
+            msg: "Please fill all details",
+            backgroundColor: Colors.red,
+          );
+
+          setState(() {
+            _isLoading = false;
+          });
+
+          return; // Stop further execution
+        }
+
+        // Store data in Provider
+        final accountProvider =
+            Provider.of<CreateAccountProvider>(context, listen: false);
+        accountProvider.setAccountData(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+        );
+
         try {
-          // Begins a try block to catch any errors during phone verification.
           await FirebaseAuth.instance.verifyPhoneNumber(
-            // Calls Firebase's phone authentication method.
-            phoneNumber:
-                '+91 ${_phoneController.text.trim()}', // Formats and passes the phone number.
-            verificationCompleted: (PhoneAuthCredential credential) {
-              // Callback for automatic verification.
-              FirebaseAuth.instance
-                  .signInWithCredential(credential)
-                  .then((value) {
-                // Signs in the user automatically with the provided credential.
-                Fluttertoast.showToast(
-                  // Displays a success message.
-                  msg:
-                      "Phone number verified and user signed in!", // Message shown in the toast.
-                  backgroundColor: Colors.green, // Toast background color.
-                );
-                Get.toNamed(AppRoutes
-                    .verificationCode); // Navigates to the OTP screen using GetX routes.
-              });
+            phoneNumber: '+91 ${_phoneController.text.trim()}',
+            verificationCompleted: (PhoneAuthCredential credential) async {
+              await FirebaseAuth.instance.signInWithCredential(credential);
+              Fluttertoast.showToast(
+                msg: "Phone number verified and user signed in!",
+                backgroundColor: Colors.green,
+              );
+
+              // Navigate to OTP screen
+              Get.toNamed(AppRoutes.registerUserVerification);
             },
             verificationFailed: (FirebaseAuthException e) {
-              // Callback for failed verification.
               Fluttertoast.showToast(
-                // Displays a failure message.
-                msg:
-                    "Verification failed: ${e.message}", // Shows the specific error message.
-                backgroundColor: Colors.red, // Toast background color.
+                msg: "Verification failed: ${e.message}",
+                backgroundColor: Colors.red,
               );
-
-              print("${e.message}hello");
             },
             codeSent: (String verificationId, int? resendToken) {
-              // Callback for when the OTP code is sent.
-              _verificationId = verificationId; // Stores the verification ID.
+              _verificationId = verificationId;
               Fluttertoast.showToast(
-                // Displays a success message.
-                msg: "Verification code sent!", // Message indicating code sent.
-                backgroundColor:
-                    Colorconstants.secondaryColor, // Toast background color.
+                msg: "Verification code sent!",
+                backgroundColor: Colors.blue,
               );
-
-              // Navigate to the OTP screen
-              Get.toNamed(AppRoutes.verificationCode, arguments: {
-                // Navigates to the OTP screen and passes arguments.
-                "verificationId":
-                    _verificationId, // Passes the verification ID to the next screen.
+              Get.toNamed(AppRoutes.registerUserVerification, arguments: {
+                "verificationId": _verificationId,
               });
             },
             codeAutoRetrievalTimeout: (String verificationId) {
-              // Callback for timeout when auto-retrieval fails.
-              _verificationId =
-                  verificationId; // Stores the verification ID even after timeout.
+              _verificationId = verificationId;
             },
           );
         } catch (e) {
-          // Catch block to handle any errors during the phone verification process.
           Fluttertoast.showToast(
-            // Displays an error message.
-            msg: "An error occurred: $e", // Shows the specific error.
-            backgroundColor: Colors.red, // Toast background color.
+            msg: "An error occurred: $e",
+            backgroundColor: Colors.red,
           );
         }
       } else {
-        // Runs if form validation fails.
         Fluttertoast.showToast(
-          // Displays an error message.
-          msg: "Please fill all details", // Error message for incomplete form.
-          backgroundColor: Colors.black, // Toast background color.
-          textColor: Colorconstants.white, // Toast text color.
+          msg: "Please fill all details",
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
         );
       }
 
-      // Simulate loading delay
-      Future.delayed(Duration(seconds: 2), () {
-        // Delays for 2 seconds to simulate loading time.
+      Future.delayed(Duration(seconds: 3), () {
         setState(() {
-          // Updates the UI.
-          _isLoading =
-              false; // Sets _isLoading back to false, stopping the loading indicator.
+          _isLoading = false;
         });
       });
     }
-  } // Ends the _handleTap function.
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/icons/logo.png', // Your loading image (Add it to assets folder)
+                width: 100,
+                height: 100,
+              ),
+              const SizedBox(height: 10),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 10),
+              const Text(
+                "Please wait...",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

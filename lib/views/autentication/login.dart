@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fluttertoast/fluttertoast.dart'; 
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/createaccountmodel.dart';
@@ -27,100 +27,115 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   void _handleTap() async {
-    // Defines an async function _handleTap.
     if (!_isLoading) {
-      // Checks if _isLoading is false, meaning the process is not already running.
       setState(() {
-        // Updates the UI to show a loading indicator.
-        _isLoading = true; // Sets _isLoading to true.
+        _isLoading = true;
       });
 
       if (_formKey.currentState!.validate()) {
-        // Validates the form using _formKey. Ensures all form inputs are correct.
-        // Trigger Firebase phone authentication
+        print(
+            "Form validation successful. Proceeding with phone number verification...");
+
         try {
-          // Begins a try block to catch any errors during phone verification.
           await FirebaseAuth.instance.verifyPhoneNumber(
-            // Calls Firebase's phone authentication method.
-            phoneNumber:
-                '+91 ${_phoneController.text.trim()}', // Formats and passes the phone number.
-            verificationCompleted: (PhoneAuthCredential credential) {
-              // Callback for automatic verification.
-              FirebaseAuth.instance
-                  .signInWithCredential(credential)
-                  .then((value) {
-                // Signs in the user automatically with the provided credential.
-                Fluttertoast.showToast(
-                  // Displays a success message.
-                  msg:
-                      "Phone number verified and user signed in!", // Message shown in the toast.
-                  backgroundColor: Colors.green, // Toast background color.
-                );
-                Get.toNamed(AppRoutes
-                    .verificationCode); // Navigates to the OTP screen using GetX routes.
-              });
+            phoneNumber: '+91 ${_phoneController.text.trim()}',
+            verificationCompleted: (PhoneAuthCredential credential) async {
+              print("Auto verification completed. Signing in...");
+
+              // Auto sign-in with Firebase
+              await FirebaseAuth.instance.signInWithCredential(credential);
+              print("Firebase sign-in successful!");
+
+              // Call API after Firebase verification
+              print("Calling API to log in after verification...");
+              //  await _sendLoginRequest();
+
+              Fluttertoast.showToast(
+                msg: "Phone verified successfully!",
+                backgroundColor: Colors.green,
+              );
+
+              print("Navigating to verification screen...");
+              Get.toNamed(AppRoutes.loginVerification);
             },
             verificationFailed: (FirebaseAuthException e) {
-              // Callback for failed verification.
+              print("Verification failed: ${e.message}");
               Fluttertoast.showToast(
-                // Displays a failure message.
-                msg:
-                    "Verification failed: ${e.message}", // Shows the specific error message.
-                backgroundColor: Colors.red, // Toast background color.
+                msg: "Verification failed: ${e.message}",
+                backgroundColor: Colors.red,
               );
-
-              print("${e.message}hello");
             },
             codeSent: (String verificationId, int? resendToken) {
-              // Callback for when the OTP code is sent.
-              _verificationId = verificationId; // Stores the verification ID.
+              _verificationId = verificationId;
+              print("OTP code sent! Verification ID: $_verificationId");
+
               Fluttertoast.showToast(
-                // Displays a success message.
-                msg: "Verification code sent!", // Message indicating code sent.
-                backgroundColor: Colors.blue, // Toast background color.
+                msg: "Verification code sent!",
+                backgroundColor: Colors.blue,
               );
 
-              // Navigate to the OTP screen
-              Get.toNamed(AppRoutes.verificationCode, arguments: {
-                // Navigates to the OTP screen and passes arguments.
-                "verificationId":
-                    _verificationId, // Passes the verification ID to the next screen.
+              print("Navigating to verification code screen...");
+              Get.toNamed(AppRoutes.loginVerification, arguments: {
+                "verificationId": _verificationId,
               });
             },
             codeAutoRetrievalTimeout: (String verificationId) {
-              // Callback for timeout when auto-retrieval fails.
-              _verificationId =
-                  verificationId; // Stores the verification ID even after timeout.
+              _verificationId = verificationId;
+              print(
+                  "Code auto-retrieval timeout. Verification ID: $_verificationId");
             },
           );
         } catch (e) {
-          // Catch block to handle any errors during the phone verification process.
+          print("Error during phone authentication: $e");
           Fluttertoast.showToast(
-            // Displays an error message.
-            msg: "An error occurred: $e", // Shows the specific error.
-            backgroundColor: Colors.red, // Toast background color.
+            msg: "An error occurred: $e",
+            backgroundColor: Colors.red,
           );
         }
       } else {
-        // Runs if form validation fails.
+        print("Form validation failed. Please fill all details.");
         Fluttertoast.showToast(
-          // Displays an error message.
-          msg: "Please fill all details", // Error message for incomplete form.
-          backgroundColor: Colors.black, // Toast background color.
-          textColor: Colors.white, // Toast text color.
+          msg: "Please fill all details",
+          backgroundColor: Colors.black,
         );
       }
 
-      // Simulate loading delay
-      Future.delayed(Duration(seconds: 2), () {
-        // Delays for 2 seconds to simulate loading time.
+      Future.delayed(Duration(seconds: 3), () {
         setState(() {
-          // Updates the UI.
-          _isLoading =
-              false; // Sets _isLoading back to false, stopping the loading indicator.
+          _isLoading = false;
         });
+        print("Loading state reset.");
       });
     }
+  }
+
+   void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/icons/logo.png', 
+                width: 100,
+                height: 100,
+              ),
+              const SizedBox(height: 10),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 10),
+              const Text(
+                "Please wait...",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -228,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     vertical: 2.h,
                                     horizontal:
                                         18.w), // Match the original padding
-                              ),                             
+                              ),
                       ),
                       SizedBox(height: 10.h)
                     ],

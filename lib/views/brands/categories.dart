@@ -1,60 +1,31 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, avoid_print
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-class BrandDetailsScreen extends StatefulWidget {
-  const BrandDetailsScreen({super.key});
+class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({super.key});
 
   @override
-  State<BrandDetailsScreen> createState() => _BrandDetailsScreenState();
+  State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _BrandDetailsScreenState extends State<BrandDetailsScreen> {
+class _CategoryScreenState extends State<CategoryScreen> {
   String? imagePath;
   String? brandName;
 
-  final List<String> products = [
-    Imageconstants.accessories,
-    Imageconstants.anglevalve,
-    Imageconstants.basinmixer,
-    Imageconstants.basinpillartap,
-    Imageconstants.bathmixer,
-    Imageconstants.bathspout,
-    Imageconstants.bathtub,
-    Imageconstants.bathtubfilter,
-    Imageconstants.handshower,
-    Imageconstants.seatcover,
-    Imageconstants.showerrail,
-    Imageconstants.sinkmixer,
-    Imageconstants.sinktap,
-    Imageconstants.thermostat,
-    Imageconstants.washbasin,
-  ];
-
-  final List<String> productsNames = [
-    "Accessories",
-    "Angle Valve",
-    "Basin Mixer",
-    "Basin Pillar Tap",
-    "Bath Mixer",
-    "Bath Spout",
-    "Bathtub",
-    "Bathtub Filter",
-    "Hand Shower",
-    "Seat Cover",
-    "Shower Rail",
-    "Sink Mixer",
-    "Sink Tap",
-    "Thermostat",
-    "Wash Basin",
-  ];
+   List<dynamic> categories = [];
+   List<String> categoryNames = [];
 
   @override
   void initState() {
@@ -62,7 +33,49 @@ class _BrandDetailsScreenState extends State<BrandDetailsScreen> {
     final args = Get.arguments as Map<String, dynamic>?;
     imagePath = args?['image'];
     brandName = args?['name'];
+    fetchCategoryData();
   }
+
+  //  @override
+  // void initState() {
+  //   super.initState();
+  //   fetchBrandData();
+  // }
+  
+  Future<void> fetchCategoryData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    final url = 'https://hemanthapp.whysocial.in/public/user/getcategorytype';
+
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token"
+    };
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: headers);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        print(responseData.toString());
+
+        setState(() {
+          categories = responseData['banners'] ?? [];
+          categoryNames = responseData['banners'] ?? [];
+        });
+        print('${categories.toString()}>>>>>>>>>>>>><<<<<<<<<<<<<');
+        print('$categoryNames>>>>>>>>>>>>');
+      } else {
+        Fluttertoast.showToast(msg: "Data not found");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Error: ${e.toString()}");
+    }
+  }
+
+  final String imagebaseurl =
+      'https://hemanthapp.whysocial.in/public/uploads/brands/';
+
 
   @override
   Widget build(BuildContext context) {
@@ -183,12 +196,12 @@ class _BrandDetailsScreenState extends State<BrandDetailsScreen> {
                       crossAxisSpacing: 20,
                       mainAxisSpacing: 20,
                     ),
-                    itemCount: products.length,
+                    itemCount: categories.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
-                      final product = products[index];
-                      final productName = productsNames[index];
+                      final category = categories[index];
+                      final categoryType = categoryNames[index];
                       return GestureDetector(
                         onTap: () {
                           // Navigate to Category Screen with selected data
@@ -197,7 +210,7 @@ class _BrandDetailsScreenState extends State<BrandDetailsScreen> {
                             arguments: {
                               'brandImage': imagePath,
                               // 'brandName': brandName,
-                              'categoryName': productName,
+                              'categoryName': categoryType,
                             },
                           );
                         },
@@ -207,14 +220,14 @@ class _BrandDetailsScreenState extends State<BrandDetailsScreen> {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(10),
                               child: Image.asset(
-                                product,
+                                category,
                                 fit: BoxFit.contain,
                                 height: 80,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              productName,
+                              categoryType,
                               style: GoogleFonts.instrumentSans(
                                 fontSize: 12,
                                 color: Colorconstants.darkBlack,

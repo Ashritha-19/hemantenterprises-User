@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/views/aboutUs.dart';
-import 'package:hemantenterprises/views/home.dart';
-import 'package:hemantenterprises/views/quote.dart';
+import 'package:hemantenterprises/views/brands/home.dart';
+import 'package:hemantenterprises/views/cart/quote.dart';
 
 
 class BottomNavigation extends StatefulWidget {
