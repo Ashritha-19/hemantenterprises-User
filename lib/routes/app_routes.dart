@@ -3,9 +3,9 @@ import 'package:hemantenterprises/bottomnavigation/bottomnavigation.dart';
 import 'package:hemantenterprises/views/aboutUs.dart';
 import 'package:hemantenterprises/views/autentication/registerauth.dart';
 import 'package:hemantenterprises/views/brands/categories.dart';
-import 'package:hemantenterprises/views/brands/model.dart';
-import 'package:hemantenterprises/views/autentication/createaccount.dart';
 import 'package:hemantenterprises/views/brands/home.dart';
+import 'package:hemantenterprises/views/brands/subcategory.dart';
+import 'package:hemantenterprises/views/autentication/register.dart';
 import 'package:hemantenterprises/views/brands/listingpage.dart';
 import 'package:hemantenterprises/views/autentication/login.dart';
 import 'package:hemantenterprises/views/autentication/loginauth.dart';
@@ -30,8 +30,8 @@ class AppRoutes {
   static const loginVerification = '/loginVerification';
   static const home = '/home';
   static const category = '/category';
-  static const model = '/model';
   static const subCategory = '/subCategory';
+  static const productDetail = '/productDetail';
   static const listingPage = '/listingPage';
   static const bottomNavigation= '/bottomNavigation';
   static const quote = '/quote';
@@ -54,7 +54,7 @@ class AppRoutes {
     ),
     GetPage(
      name: createAccount,
-     page: () => CreateAccountScreen(),
+     page: () => RegisterScreen(),
     ),
     GetPage(
      name: registerUserVerification, 
@@ -77,12 +77,12 @@ class AppRoutes {
       page: () => CategoryScreen()
       ),   
     GetPage(
-      name: model, 
-      page: () => ModelScreen()
-      ),   
-    GetPage(
       name: subCategory, 
       page: () => SubCategoryScreen()
+      ),   
+    GetPage(
+      name: productDetail, 
+      page: () => ProductDetailScreen()
       ),
     GetPage(
       name: listingPage, 

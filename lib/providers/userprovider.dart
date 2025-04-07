@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 
 class UserProvider with ChangeNotifier {
-  String _userUid = '';
-  String _userIdentifier = '';
+  Map<String, dynamic>? userData;
+  String? accessToken;
+  String? refreshToken;
 
-  String get userUid => _userUid;
-  String get userIdentifier => _userIdentifier;
+  void setUserData(Map<String, dynamic> userData, String accessToken, String refreshToken) {
+    this.userData = userData;
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+    notifyListeners();
+  }
 
-  void setUserDetails(String uid, String identifier) {
-    _userUid = uid;
-    _userIdentifier = identifier;
-    notifyListeners(); // Notify listeners when data is updated
+  void clearUserData() {
+    userData = null;
+    accessToken = null;
+    refreshToken = null;
+    notifyListeners();
   }
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, avoid_print, deprecated_member_use, unnecessary_brace_in_string_interps, use_build_context_synchronously
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:hemantenterprises/constants/apiconstants.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
-import 'package:hemantenterprises/models/categories.dart';
+import 'package:hemantenterprises/models/subcategory.dart';
 import 'package:hemantenterprises/providers/brandlistprovider.dart';
 import 'package:hemantenterprises/providers/categoriesprovider.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
@@ -18,42 +18,39 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CategoryScreen extends StatefulWidget {
-  const CategoryScreen({super.key});
+class SubCategoryScreen extends StatefulWidget {
+  const SubCategoryScreen({super.key});
 
   @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
+  State<SubCategoryScreen> createState() => _SubCategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
-  // String? brandid;
+class _SubCategoryScreenState extends State<SubCategoryScreen> {
+  // String? catId;
   // String? brandImg;
-  // String? brandName;
-  // String? brandDescription;
+  // String? catName;
 
-  List<Allcategories> categories = [];
-  CategoriesModel? categoryModel;
+  List<SubCat> subCategories = [];
+  SubCategoryModel? subCategoryModel;
 
   @override
   void initState() {
     super.initState();
-    fetchCategoryData();
+    fetchSubCategoryData();
   }
 
-  Future<void> fetchCategoryData() async {
+  Future<void> fetchSubCategoryData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
+    final catId = Provider.of<Categoriesprovider>(context, listen: false).catId;
 
-    Provider.of<BrandsProvider>(context, listen: false);
+    if (catId == null) {
+      Fluttertoast.showToast(msg: "Category ID is missing");
+      print('Category ID is null');
+      return;
+    }
 
-    // setState(() {
-    //   brandid = Provider.of<BrandsProvider>(context, listen: false).brandId;
-    //   brandImg = Provider.of<BrandsProvider>(context, listen: false).brandImg;
-    //   brandName = Provider.of<BrandsProvider>(context, listen: false).brandName;
-    //   brandDescription = Provider.of<BrandsProvider>(context, listen: false).brandDescription;
-
-    // });
-    const String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.catListUrl}';
+    final String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.subcatlist}';
 
     print('Fetching categories from: $apiUrl');
     print('Access Token: $token');
@@ -71,16 +68,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-
-        categoryModel = CategoriesModel.fromJson(responseData);
+        subCategoryModel = SubCategoryModel.fromJson(responseData);
 
         setState(() {
-          categories = categoryModel?.allcategories ?? [];
-          print('Categories List: $categories');
+          subCategories = subCategoryModel?.subCat ?? [];
         });
       } else {
         Fluttertoast.showToast(msg: "Data not found");
-        print('Error: Data not found. Status Code: ${response.statusCode}');
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error: ${e.toString()}");
@@ -88,15 +82,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
   }
 
-  // final String catImgUrl = ApiConstants.catImgBaseUrl;
-
   @override
   Widget build(BuildContext context) {
-    final brandProvider = Provider.of<BrandsProvider>(context);
+    final catProvider = Provider.of<Categoriesprovider>(context);
+    final brandsProvider = Provider.of<BrandsProvider>(context);
     return Scaffold(
       body: Stack(
-        fit: StackFit.expand,
         children: [
+          // Background image
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -108,22 +101,26 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             ),
           ),
+          // Main content
           SingleChildScrollView(
             child: Column(
               children: [
                 CustomAppBar(
                   hintText: "Search",
-                  onSearchTap: () {},
+                  onSearchTap: () {
+                    // Define action for search
+                  },
                 ),
                 SizedBox(height: 2.h),
+                // Page title with brand logo and product name
                 Align(
                   alignment: Alignment.topLeft,
                   child: Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
                     child: Row(
                       children: [
-                        if (brandProvider.brandImg != null)
+                        if (brandsProvider.brandImg != null)
                           Container(
                             decoration: BoxDecoration(
                               color: Colorconstants.white,
@@ -135,31 +132,33 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             ),
                             padding: const EdgeInsets.all(8.0),
                             child: Image.network(
-                              '${ApiConstants.brandImgBaseUrl}${brandProvider.brandImg}',
+                              '${ApiConstants.brandImgBaseUrl}${brandsProvider.brandImg}',
                               height: 30,
                               width: 30,
                               fit: BoxFit.contain,
                             ),
                           ),
-                        const SizedBox(width: 10),
-                        Text(
-                          brandProvider.brandName ?? "Brand",
-                          style: GoogleFonts.instrumentSans(
-                            fontSize: 14.sp,
-                            color: Colorconstants.darkBlack,
-                            fontWeight: FontWeight.w500,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            catProvider.catName ?? "CategoryName",
+                            style: GoogleFonts.instrumentSans(
+                              fontSize: 14,
+                              color: Colorconstants.darkBlack,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        Spacer(),
                         ElevatedButton(
                           onPressed: () {
-                            Get.back();
+                            Get.back(); // Navigate back to Brand Details Screen
                           },
                           child: Text(
                             'Back',
                             style: GoogleFonts.nunitoSans(
                               color: Colorconstants.primaryColor,
-                              fontSize: 12.sp,
+                              fontSize: 12,
                             ),
                           ),
                         ),
@@ -167,71 +166,52 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 2.h,
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      Text(
-                          brandProvider.brandDescription ?? 'Brand Description',
-                          style: GoogleFonts.instrumentSans(
-                              color: Colorconstants.darkBlack, fontSize: 12.sp))
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 2.h,
-                ),
+                const SizedBox(height: 20),
+                // Categories grid
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: categories.isEmpty
-                      ? Center(child: Text("No categories found."))
+                  child: subCategories.isEmpty
+                      ? Center(
+                          child: Text("No SubCategories found"),
+                        )
                       : GridView.builder(
                           padding: const EdgeInsets.only(top: 10),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
-                            crossAxisSpacing: 20,
+                            crossAxisSpacing: 5,
                             mainAxisSpacing: 20,
                           ),
-                          itemCount: categories.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: subCategories.length,
+                          shrinkWrap:
+                              true, // GridView will take only as much space as needed
+                          physics:
+                              const NeverScrollableScrollPhysics(), // Prevent inner scrolling
                           itemBuilder: (context, index) {
-                            Allcategories allcategories = categories[index];
+                            SubCat subCat = subCategories[index];
+
                             return GestureDetector(
                               onTap: () {
-                                final categoriesProvider =
-                                    Provider.of<Categoriesprovider>(context,
-                                        listen: false);
-                                categoriesProvider.setCatDetails(
-                                  allcategories.id.toString(),
-                                  '${ApiConstants.brandImgBaseUrl}${brandProvider.brandImg}', // img
-                                  allcategories.catName ?? "", // name
+                                Get.toNamed(
+                                  AppRoutes.productDetail,
                                 );
-
-                                Get.toNamed(AppRoutes.subCategory);
-                                print('Brand tapped: ${allcategories.catName}');
                               },
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      '${ApiConstants.catImgBaseUrl}${allcategories.catImage}',
-                                      fit: BoxFit.contain,
-                                      height: 80,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Icon(Icons.error),
-                                    ),
-                                  ),
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        "${ApiConstants.subCatImgBaseUrl}${subCat.catImage}",
+                                        fit: BoxFit.contain,
+                                        height: 80,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(Icons.error),
+                                      )),
                                   const SizedBox(height: 8),
                                   Text(
-                                    allcategories.catName ?? "",
+                                    subCat.catName ?? "",
                                     style: GoogleFonts.instrumentSans(
                                       fontSize: 12,
                                       color: Colorconstants.darkBlack,

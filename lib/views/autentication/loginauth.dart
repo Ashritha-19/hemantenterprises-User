@@ -9,12 +9,14 @@ import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hemantenterprises/constants/apiservices.dart';
+import 'package:hemantenterprises/constants/apiconstants.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
+import 'package:hemantenterprises/providers/userprovider.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginVerification extends StatefulWidget {
@@ -32,7 +34,6 @@ class _LoginVerificationState extends State<LoginVerification> {
   String _otpCode = "";
   bool _isResendEnabled = false;
   late String _verificationId;
-
   String? userUid;
   String? userIdentifier;
 
@@ -132,101 +133,76 @@ class _LoginVerificationState extends State<LoginVerification> {
     }
   }
 
-  Future<void> _saveLoginData(BuildContext context) async {
-    const String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.login}';
-
-    print(userUid);
-    print(userIdentifier);
-
-    Map<String, String> headers = {
-      "Content-Type": "application/json",
-    };
-
-    Map<String, dynamic> requestBody = {
-      "userPhoneNumner": userIdentifier,
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: jsonEncode(requestBody),
-      );
-
-      print("Response Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-
-        print('$responseData >>>>>>>>>>>>>>');
-        print('${responseData['error']}>>>>>>>>>>>>>>>>>>error');
-        print('${responseData['message']}>>>>>>>>>>>>>>>>>>>message');
-        if(responseData['message'] == "Login successful"){
-         
-          Fluttertoast.showToast(
-            msg: responseData['message'].toString());
-            Get.toNamed(AppRoutes.bottomNavigation);
-
-           // Store the access token in SharedPreferences
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-              'access_token', responseData['access_token'].toString());
-
-        }else{
-          Fluttertoast.showToast(
-            msg: "Invalid phone number, please sign up");
-           
-        }      
-
-        print("Success: ${response.body}");
-      } else {
-        Fluttertoast.showToast(
-            msg: response.body.toString(),backgroundColor: Colors.red);
-            Get.toNamed(AppRoutes.createAccount);
-        print("Failed: ${response.statusCode} - ${response.body}");
-      }
-    } catch (e) {
-      print("Error: $e");
-    }
-    // try {
-    //   // Log the API URL and headers before sending the request
-    //   print("Sending POST request to: $apiUrl");
-    //   print("Request Headers: ${{"Content-Type": "application/json"}}");
-    //   print("Final Request JSON: ${json.encode(requestBody)}");
-
-    //   final response = await http.post(
-    //     Uri.parse(apiUrl),
-    //     headers: {"Content-Type": "application/json"},
-    //     body: json.encode(requestBody),
-    //   );
-
-    //   // Log the response status and body for debugging
-    //   print("API Response Status Code: ${response.statusCode}");
-    //   print("API Response Body: ${response.body}");
-
-    //   if (response.statusCode == 200) {
-    //     final Map<String, dynamic> responsedata = jsonDecode(response.body);
-
-    //     print('${responsedata}........................');
-    //     // Log success and navigate
-    //     Fluttertoast.showToast(
-    //         msg: "Login successful!", backgroundColor: Colors.green);
-    //     print("Login successful. Navigating to bottom navigation screen...");
-    //     Get.offAllNamed(AppRoutes
-    //         .bottomNavigation); // Navigate to home screen after successful login
-    //   } else {
-    //     // Log failure
-    //     Fluttertoast.showToast(
-    //         msg: "Login failed. Try again.", backgroundColor: Colors.red);
-    //     print("Login failed. Response: ${response.body}");
-    //   }
-    // } catch (e) {
-    //   // Log the error if the request fails
-    //   Fluttertoast.showToast(msg: "Error: $e", backgroundColor: Colors.red);
-    //   print("Error occurred: $e");
-    // }
+Future<void> _saveLoginData(BuildContext context) async {
+  if (userIdentifier == null || !userIdentifier!.startsWith('+91') || userIdentifier!.length < 13) {
+    Fluttertoast.showToast(msg: "Invalid phone number format");
+    return;
   }
+
+  const String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.login}';
+  String userPhoneNumber = userIdentifier!.substring(3); 
+
+  print(userPhoneNumber);
+
+  Map<String, String> headers = {
+    "Content-Type": "application/json",
+  };
+
+  Map<String, dynamic> requestBody = {
+    "userPhoneNumner": userPhoneNumber,
+  };
+
+  print('$requestBody>>>>');
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: headers,
+      body: jsonEncode(requestBody),
+    );
+
+    print("Response Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      if (responseData['message'] == "Login successful") {
+        Fluttertoast.showToast(msg: "Login successful");
+
+        // Store user data in Provider
+        Provider.of<UserProvider>(context, listen: false).setUserData(
+          responseData['userData'],
+          responseData['access_token'],
+          responseData['refresh_token'],
+        );
+
+        print("User Data Received: ${responseData['userData']}");
+
+        // Store tokens securely
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('access_token', responseData['access_token'].toString());
+        await prefs.setString('refresh_token', responseData['refresh_token'].toString());
+
+        Get.toNamed(AppRoutes.bottomNavigation);
+      } else {
+        Fluttertoast.showToast(msg: "Invalid phone number, please sign up");
+        Get.toNamed(AppRoutes.createAccount);
+      }
+    } else {
+      Fluttertoast.showToast(
+        msg: "Login failed: ${response.body}",
+        backgroundColor: Colors.red,
+      );
+      Get.toNamed(AppRoutes.createAccount);
+    }
+  } catch (e) {
+    print("Error: $e");
+    Fluttertoast.showToast(msg: "Something went wrong, please try again", backgroundColor: Colors.red);
+  }
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {

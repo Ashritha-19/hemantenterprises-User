@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, deprecated_member_use, avoid_print
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use, avoid_print, unnecessary_string_interpolations, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
@@ -12,24 +12,23 @@ import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/createaccountmodel.dart';
 import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
-import 'package:hemantenterprises/providers/register.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class CreateAccountScreen extends StatefulWidget {
-  const CreateAccountScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  _CreateAccountScreenState createState() => _CreateAccountScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _CreateAccountScreenState extends State<CreateAccountScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _privacyChecked = false;
-  String? _verificationId ;
+  String? _verificationId;
   bool _isLoading = false;
 
   void _handleTap() async {
@@ -37,15 +36,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       setState(() {
         _isLoading = true;
       });
+
       showLoadingDialog(context);
 
       if (_formKey.currentState!.validate()) {
         print('name:${_nameController.text}');
         print('email:${_emailController.text}');
-      
+
         // Check if values are not empty
         if (_nameController.text.trim().isEmpty ||
-            _emailController.text.trim().isEmpty) {
+            _emailController.text.trim().isEmpty ||
+            _phoneController.text.trim().isEmpty) {
           Fluttertoast.showToast(
             msg: "Please fill all details",
             backgroundColor: Colors.red,
@@ -58,13 +59,21 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           return; // Stop further execution
         }
 
-        // Store data in Provider
-        final accountProvider =
-            Provider.of<CreateAccountProvider>(context, listen: false);
-        accountProvider.setAccountData(
-          _nameController.text.trim(),
-          _emailController.text.trim(),
-        );
+        if (!_privacyChecked) {
+          Fluttertoast.showToast(
+            msg: "Please agree to the Privacy Policy",
+            backgroundColor: Colors.red,
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', '${_nameController.text.toString()}');
+        await prefs.setString('useremail', '${_emailController.text.toString()}');
+            
 
         try {
           await FirebaseAuth.instance.verifyPhoneNumber(
@@ -76,8 +85,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 backgroundColor: Colors.green,
               );
 
-              // Navigate to OTP screen
-              Get.toNamed(AppRoutes.registerUserVerification);
+              Get.toNamed(AppRoutes.registerUserVerification, arguments: {
+                "verificationId": _verificationId,
+                "fullName": _nameController.text.trim(),
+                "email": _emailController.text.trim(),
+              });
             },
             verificationFailed: (FirebaseAuthException e) {
               Fluttertoast.showToast(

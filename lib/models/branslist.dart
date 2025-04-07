@@ -1,61 +1,49 @@
-// ignore_for_file: unnecessary_this
 
-class Brands {
-  List<Banners>? banners;
+class BrandsListModel {
+    List<Banners>? banners;
 
-  Brands({this.banners});
+    BrandsListModel({this.banners});
 
-  Brands.fromJson(Map<String, dynamic> json) {
-    if (json['banners'] != null) {
-      banners = <Banners>[];
-      json['banners'].forEach((v) {
-        banners!.add(Banners.fromJson(v));
-      });
+    BrandsListModel.fromJson(Map<String, dynamic> json) {
+        banners = json["banners"] == null ? null : (json["banners"] as List).map((e) => Banners.fromJson(e)).toList();
     }
-  }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (this.banners != null) {
-      data['banners'] = this.banners!.map((v) => v.toJson()).toList();
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> data = <String, dynamic>{};
+        if(banners != null) {
+            data["banners"] = banners?.map((e) => e.toJson()).toList();
+        }
+        return data;
     }
-    return data;
-  }
 }
 
 class Banners {
-  String? brandId;
-  String? brandName;
-  String? brandImg;
-  String? brandDescription;
-  String? brandOrder;
-  String? brandstatus;
+    String? brandId;
+    String? brandName;
+    String? brandImg;
+    String? brandDescription;
+    String? brandOrder;
+    String? brandstatus;
 
-  Banners(
-      {this.brandId,
-      this.brandName,
-      this.brandImg,
-      this.brandDescription,
-      this.brandOrder,
-      this.brandstatus});
+    Banners({this.brandId, this.brandName, this.brandImg, this.brandDescription, this.brandOrder, this.brandstatus});
 
-  Banners.fromJson(Map<String, dynamic> json) {
-    brandId = json['brand_id'];
-    brandName = json['brand_name'];
-    brandImg = json['brand_img'];
-    brandDescription = json['brand_description'];
-    brandOrder = json['brand_order'];
-    brandstatus = json['brandstatus'];
-  }
+    Banners.fromJson(Map<String, dynamic> json) {
+        brandId = json["brand_id"];
+        brandName = json["brand_name"];
+        brandImg = json["brand_img"];
+        brandDescription = json["brand_description"];
+        brandOrder = json["brand_order"];
+        brandstatus = json["brandstatus"];
+    }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['brand_id'] = this.brandId;
-    data['brand_name'] = this.brandName;
-    data['brand_img'] = this.brandImg;
-    data['brand_description'] = this.brandDescription;
-    data['brand_order'] = this.brandOrder;
-    data['brandstatus'] = this.brandstatus;
-    return data;
-  }
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> _data = <String, dynamic>{};
+        _data["brand_id"] = brandId;
+        _data["brand_name"] = brandName;
+        _data["brand_img"] = brandImg;
+        _data["brand_description"] = brandDescription;
+        _data["brand_order"] = brandOrder;
+        _data["brandstatus"] = brandstatus;
+        return _data;
+    }
 }

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:get/get.dart';
 import 'package:hemantenterprises/firebase_options.dart';
-import 'package:hemantenterprises/providers/register.dart';
+import 'package:hemantenterprises/providers/brandlistprovider.dart';
+import 'package:hemantenterprises/providers/categoriesprovider.dart';
 import 'package:hemantenterprises/providers/userprovider.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:hemantenterprises/views/splash/splashscreen.dart';
@@ -18,8 +19,12 @@ void main() async{
   runApp(  MultiProvider(
      // Provide UserProvider to the app
       providers: [ 
-      ChangeNotifierProvider(create: (context) => CreateAccountProvider()),
-      ChangeNotifierProvider(create: (context) => UserProvider()), ],
+      ChangeNotifierProvider(create: (context) => UserProvider()),
+      ChangeNotifierProvider(create: (context) => BrandsProvider()), 
+      ChangeNotifierProvider(create: (context) => Categoriesprovider()),
+      
+
+      ],
       child: const MyApp(),
     ),);
 }

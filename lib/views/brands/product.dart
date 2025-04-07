@@ -9,14 +9,14 @@ import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 
-class SubCategoryScreen extends StatefulWidget {
-  const SubCategoryScreen({super.key});
+class ProductDetailScreen extends StatefulWidget {
+  const ProductDetailScreen({super.key});
 
   @override
-  State<SubCategoryScreen> createState() => _SubCategoryScreenState();
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _SubCategoryScreenState extends State<SubCategoryScreen> {
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? brandImagePath;
   String? productName;
   String? categoryName;

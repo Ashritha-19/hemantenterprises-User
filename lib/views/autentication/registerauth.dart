@@ -9,14 +9,13 @@ import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hemantenterprises/constants/apiservices.dart';
+import 'package:hemantenterprises/constants/apiconstants.dart';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/models/elevatedbuttonmodel.dart';
-import 'package:hemantenterprises/providers/register.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterUserVerification extends StatefulWidget {
   const RegisterUserVerification({super.key});
@@ -34,6 +33,9 @@ class _RegisterUserVerificationState extends State<RegisterUserVerification> {
   String _otpCode = "";
   bool _isResendEnabled = false;
   late String _verificationId;
+  late String fullName;
+  late String email;
+  String? phoneNumber;
 
   String? userUid;
   String? userIdentifier;
@@ -41,7 +43,8 @@ class _RegisterUserVerificationState extends State<RegisterUserVerification> {
   @override
   void initState() {
     super.initState();
-    _verificationId = Get.arguments["verificationId"];
+    _verificationId = Get.arguments["verificationId"] ?? "";
+
     startTimer();
   }
 
@@ -108,28 +111,35 @@ class _RegisterUserVerificationState extends State<RegisterUserVerification> {
     }
   }
 
-  Future<void> _saveRegisterData(BuildContext context) async {
+  Future<void> _saveRegisterData(
+    BuildContext context,
+  ) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     const String apiUrl = '${ApiConstants.baseUrl}${ApiConstants.register}';
-    final String fullName =
-        Provider.of<CreateAccountProvider>(context, listen: false).fullName;
-    final String email =
-        Provider.of<CreateAccountProvider>(context, listen: false).email;
-  
-    print(fullName);
-    print(email);
-    print(userUid);
+
+    final username = prefs.getString('username');
+    final useremail = prefs.getString('useremail');
+    String phNumber = userIdentifier!.replaceFirst("+91", "");
+
+    print(phNumber);
+    print(username);
+    print(useremail);
     print(userIdentifier);
 
     Map<String, String> headers = {
       "Content-Type": "application/json",
     };
 
+    print(headers);
+
     Map<String, dynamic> requestBody = {
-      "fullName": fullName,
-      "email": email,
-      "phoneNumber": userIdentifier.toString(),
+      "fullName": username,
+      "email": useremail,
+      "phoneNumber": phNumber,
       // "userId": userUid.toString(),
     };
+
+    print('$requestBody>>>>>>>>');
 
     try {
       final response = await http.post(
@@ -166,9 +176,10 @@ class _RegisterUserVerificationState extends State<RegisterUserVerification> {
 
           // Navigate to Bottom Navigation Screen
           Get.toNamed(AppRoutes.bottomNavigation);
-        }
+      
 
         print("Success: ${response.body}");
+          }
       } else {
         print("Failed: ${response.statusCode} - ${response.body}");
       }
