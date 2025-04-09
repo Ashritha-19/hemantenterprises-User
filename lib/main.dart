@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:hemantenterprises/firebase_options.dart';
 import 'package:hemantenterprises/providers/brandlistprovider.dart';
 import 'package:hemantenterprises/providers/categoriesprovider.dart';
+import 'package:hemantenterprises/providers/productprovider.dart';
+import 'package:hemantenterprises/providers/subcategories.dart';
 import 'package:hemantenterprises/providers/userprovider.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:hemantenterprises/views/splash/splashscreen.dart';
@@ -22,8 +24,10 @@ void main() async{
       ChangeNotifierProvider(create: (context) => UserProvider()),
       ChangeNotifierProvider(create: (context) => BrandsProvider()), 
       ChangeNotifierProvider(create: (context) => Categoriesprovider()),
-      
-
+      ChangeNotifierProvider(create: (context) => SubCategoryProvider()),
+       ChangeNotifierProvider(create: (context) => ProductProvider()),
+        
+       
       ],
       child: const MyApp(),
     ),);

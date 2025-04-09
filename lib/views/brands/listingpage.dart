@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, depend_on_referenced_packages, avoid_print
+// ignore_for_file: deprecated_member_use, depend_on_referenced_packages, avoid_print, unnecessary_brace_in_string_interps
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
@@ -6,6 +6,11 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:hemantenterprises/constants/apiconstants.dart';
+import 'package:hemantenterprises/providers/brandlistprovider.dart';
+import 'package:hemantenterprises/providers/categoriesprovider.dart';
+import 'package:hemantenterprises/providers/productprovider.dart';
+import 'package:hemantenterprises/providers/subcategories.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +18,7 @@ import 'dart:io';
 import 'package:hemantenterprises/constants/colorconstants.dart';
 import 'package:hemantenterprises/constants/imageconstants.dart';
 import 'package:hemantenterprises/constants/searchfield.dart';
+import 'package:provider/provider.dart';
 
 class ListingPageScreen extends StatefulWidget {
   const ListingPageScreen({super.key});
@@ -22,18 +28,72 @@ class ListingPageScreen extends StatefulWidget {
 }
 
 class _ListingPageScreenState extends State<ListingPageScreen> {
-  String? brandImagePath;
-  String? productName;
+  String? brandImage;
   String? categoryName;
+  String? subcategoryName;
+  String? virewproductresponse;
+  String? hsncode ;
+  String? productImg1;
+  String? productImg2;
+  String? productImg3;
+  String? productDes;
+  String? productDoc;
+  double? productAmt;
+  String? productname;
+
 
   @override
   void initState() {
     super.initState();
-    final args = Get.arguments as Map<String, dynamic>?;
-    brandImagePath = args?['brandImage'];
-    productName = args?['product'];
-    categoryName = args?['category'];
+   getViewDeatails();
   }
+
+  Future<void> getViewDeatails() async{
+    final catProvider = Provider.of<Categoriesprovider>(context, listen: false).catName;
+    final brandsProvider = Provider.of<BrandsProvider>(context, listen: false).brandImg;
+    final subcategoryname = Provider.of<SubCategoryProvider>(context,listen: false).catName;
+    final productCode = Provider.of<ProductProvider>(context, listen: false).productCode;
+    final productDescription = Provider.of<ProductProvider>(context, listen: false).productDescription;
+    final productImage1 = Provider.of<ProductProvider>(context, listen: false).productImage1;
+    final productImage2 = Provider.of<ProductProvider>(context, listen: false).productImage2;
+    final productImage3 = Provider.of<ProductProvider>(context, listen: false).productImage3;
+    final productDocument = Provider.of<ProductProvider>(context, listen: false).productDocument;
+    final productPrice = Provider.of<ProductProvider>(context, listen: false).productAmt;
+     final productName = Provider.of<ProductProvider>(context, listen: false).productname;
+    
+
+
+   // print();
+
+    setState(() {
+      brandImage = brandsProvider;
+      categoryName = catProvider;
+      subcategoryName = subcategoryname;
+      hsncode = productCode;
+      productImg1 = productImage1;
+      productImg2 = productImage2;
+      productImg3 = productImage3;
+      productDes = productDescription;
+      productDoc = productDocument;
+      productAmt = productPrice;
+      productname = productName;
+
+    });
+
+    print("${brandImage}???????????");
+    print("${categoryName}???????????");
+    print("${subcategoryName}??????????");
+    print('${hsncode}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+    print("${productImg1}");
+    print("$productImg2");
+    print("${productImg3}");
+    print("${productDes}");
+    print("${productDes}");
+    print("${productAmt}");
+    print("${productname}");
+
+  }
+
 
   Future<File?> downloadFile(String url, String filename) async {
     try {
@@ -50,7 +110,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
   }
 
   void openPDF() async {
-    String pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+    String pdfUrl = "https://hemanthapp.whysocial.in/public/uploads/productDocs";
     File? file = await downloadFile(pdfUrl, "sample.pdf");
 
     if (file != null) {
@@ -67,6 +127,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: Container(
@@ -94,7 +155,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                     children: [
                       Row(
                         children: [
-                          if (brandImagePath != null)
+                          if (brandImage != null)
                             Container(
                               decoration: BoxDecoration(
                                 color: Colorconstants.white,
@@ -102,8 +163,8 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                                 border: Border.all(color: Colorconstants.brandLogoCircle, width: 1.0),
                               ),
                               padding: const EdgeInsets.all(8.0),
-                              child: Image.asset(
-                                brandImagePath!,
+                              child: Image.network(
+                                '${ApiConstants.brandImgBaseUrl}${brandImage}',
                                 height: 30,
                                 width: 30,
                                 fit: BoxFit.contain,
@@ -114,7 +175,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: productName ?? "Category",
+                                  text: categoryName ?? "Category",
                                   style: GoogleFonts.instrumentSans(
                                     fontSize: 14.sp,
                                     color: Colorconstants.brandLogoCircle,
@@ -130,7 +191,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: categoryName ?? "Subcategory",
+                                  text: subcategoryName ?? "Subcategory",
                                   style: GoogleFonts.instrumentSans(
                                     fontSize: 14.sp,
                                     color: Colorconstants.darkBlack,
@@ -181,12 +242,12 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "HSN: 848180",
+                        "HSN: ${hsncode}",
                         style: GoogleFonts.instrumentSans(fontSize: 10, color: Colorconstants.darkBlack),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Lineare 1-Handle Basin Mixer without Pop-Up, XL Size",
+                        "${productname}",
                         style: GoogleFonts.instrumentSans(fontSize: 12, fontWeight: FontWeight.bold, color: Colorconstants.darkBlack),
                       ),
                       const SizedBox(height: 8),
@@ -202,7 +263,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            "₹10,500*",
+                            "${productAmt}",
                             style: GoogleFonts.instrumentSans(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -216,7 +277,7 @@ class _ListingPageScreenState extends State<ListingPageScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                "Elegance and water-saving performance – the GROHE Lineare single-lever basin mixer with extra high spout!",
+                                "${productDes}",
                                 style: GoogleFonts.instrumentSans(fontSize: 12, color: const Color(0xFF010101)),
                               ),
                             ),

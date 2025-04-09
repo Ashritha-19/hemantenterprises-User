@@ -13,6 +13,7 @@ import 'package:hemantenterprises/constants/searchfield.dart';
 import 'package:hemantenterprises/models/subcategory.dart';
 import 'package:hemantenterprises/providers/brandlistprovider.dart';
 import 'package:hemantenterprises/providers/categoriesprovider.dart';
+import 'package:hemantenterprises/providers/subcategories.dart';
 import 'package:hemantenterprises/routes/app_routes.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -73,6 +74,7 @@ class _SubCategoryScreenState extends State<SubCategoryScreen> {
         setState(() {
           subCategories = subCategoryModel?.subCat ?? [];
         });
+   
       } else {
         Fluttertoast.showToast(msg: "Data not found");
       }
@@ -88,6 +90,7 @@ class _SubCategoryScreenState extends State<SubCategoryScreen> {
     final brandsProvider = Provider.of<BrandsProvider>(context);
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           // Background image
           Positioned.fill(
@@ -192,9 +195,22 @@ class _SubCategoryScreenState extends State<SubCategoryScreen> {
 
                             return GestureDetector(
                               onTap: () {
+                                print(subCat.catId);
+                                print(subCat.catImage);
+                                print(subCat.catName);
+                                    Provider.of<SubCategoryProvider>(context, listen: false)
+                .setSubCategoryValues(
+              subCat.catId.toString(),
+              subCat.catImage.toString(),
+              subCat.catName.toString(),
+            );
+                
+
                                 Get.toNamed(
                                   AppRoutes.productDetail,
+                                  
                                 );
+                                print('Brand tapped: ${subCat.catName}');
                               },
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -202,7 +218,7 @@ class _SubCategoryScreenState extends State<SubCategoryScreen> {
                                   ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
                                       child: Image.network(
-                                        "${ApiConstants.subCatImgBaseUrl}${subCat.catImage}",
+                                        "${ApiConstants.catImgBaseUrl}${subCat.catImage}",
                                         fit: BoxFit.contain,
                                         height: 80,
                                         errorBuilder:
